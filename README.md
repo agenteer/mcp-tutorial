@@ -29,4 +29,4 @@ This tutorial demonstrates the core concepts of MCP:
 
 ## Learn More
 
-For more information about MCP, visit [Anthropic's MCP documentation](https://docs.anthropic.com/claude/docs/model-context-protocol).
+For more information about MCP, visit [Anthropic's MCP documentation](https://modelcontextprotocol.io/introduction).
