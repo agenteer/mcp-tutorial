@@ -88,7 +88,7 @@ class MCPClient:
             return None
         
         return response.get("result")
-    
+
     def get_resource(self, name, parameters=None):
         if parameters is None:
             parameters = {}
@@ -104,7 +104,7 @@ class MCPClient:
             return None
     
         return response.get("data")
-
+    
     def close(self):
         self.process.terminate()
 
@@ -116,7 +116,7 @@ def main():
     
     print("Welcome to the Weather Activity Planner!")
     print("Available cities:", ", ".join(city.title() for city in cities))
-    
+
     while True:
         city = input("\nEnter a city (or 'quit' to exit): ").strip().lower()
         

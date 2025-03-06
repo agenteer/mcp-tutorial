@@ -23,6 +23,10 @@ class WeatherServer:
             return self.handle_list_resources()
         elif message_type == "get_resource":
             return self.handle_get_resource(message)
+        elif message_type == "list_prompts":
+            return self.handle_list_prompts()
+        elif message_type == "invoke_prompt":
+            return self.handle_invoke_prompt(message)
         else:
             return {"type": "error", "error": f"Unsupported message type: {message_type}"}
     
@@ -91,6 +95,96 @@ class WeatherServer:
             }
         else:
             return {"type": "error", "error": f"Unknown resource: {resource_name}"}
+    
+    def handle_list_prompts(self):
+        return {
+            "type": "prompts",
+            "prompts": [
+                {
+                    "name": "weather_report",
+                    "description": "Generate a detailed weather report for a city"
+                },
+                {
+                    "name": "packing_list",
+                    "description": "Generate a packing list based on weather conditions"
+                }
+            ]
+        }
+
+    def handle_invoke_prompt(self, message):
+        prompt_name = message.get("name")
+        parameters = message.get("parameters", {})
+        
+        if prompt_name == "weather_report":
+            return self.generate_weather_report(parameters)
+        elif prompt_name == "packing_list":
+            return self.generate_packing_list(parameters)
+        else:
+            return {"type": "error", "error": f"Unknown prompt: {prompt_name}"}
+    
+    def generate_weather_report(self, parameters):
+        city = parameters.get("city", "").lower()
+        
+        if city not in self.cities:
+            return {
+                "type": "error", 
+                "error": f"No weather data available for {city}"
+            }
+        
+        weather = self.cities[city]
+        
+        template = f"""
+    # Weather Report for {city.title()}
+    
+    ## Current Conditions
+    - Temperature: {weather['temp']}°F
+    - Conditions: {weather['condition']}
+    
+    ## Forecast
+    The conditions are expected to continue for the next few hours.
+    
+    ## Weather Advisory
+    {"Stay hydrated and use sunscreen!" if weather['condition'] == "Sunny" and weather['temp'] > 75 else
+     "Remember to bring an umbrella!" if weather['condition'] == "Rainy" else
+     "No special advisories at this time."}
+    """
+        
+        return {
+            "type": "prompt_result",
+            "result": template
+        }
+    
+    def generate_packing_list(self, parameters):
+        city = parameters.get("city", "").lower()
+        days = parameters.get("days", 1)
+        
+        if city not in self.cities:
+            return {
+                "type": "error", 
+                "error": f"No weather data available for {city}"
+            }
+        
+        weather = self.cities[city]
+        
+        items = ["Wallet", "Phone", "Charger"]
+        
+        # Add weather-specific items
+        if weather['condition'] == "Sunny" and weather['temp'] > 75:
+            items.extend(["Sunglasses", "Sunscreen", "Hat", "T-shirts", "Shorts"])
+        elif weather['condition'] == "Rainy":
+            items.extend(["Umbrella", "Rain jacket", "Waterproof shoes"])
+        elif weather['temp'] < 65:
+            items.extend(["Jacket", "Sweater", "Long pants"])
+        
+        # Format the packing list
+        packing_list = f"# Packing List for {city.title()} ({days} day{'s' if days > 1 else ''})\n\n"
+        for item in items:
+            packing_list += f"- {item}\n"
+        
+        return {
+            "type": "prompt_result",
+            "result": packing_list
+        }
 
 # Main loop to handle stdin/stdout communication
 def main():

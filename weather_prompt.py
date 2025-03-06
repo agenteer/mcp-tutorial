@@ -1,6 +1,5 @@
 import json
 import subprocess
-import sys
 
 class MCPClient:
     def __init__(self, server_command):
@@ -87,53 +86,62 @@ class MCPClient:
         self.process.terminate()
 
 def main():
-    # Create a client that connects to our weather server
     client = MCPClient(["python", "weather_server.py"])
     
-    # List available tools
-    print("Available tools:")
-    tools = client.list_tools()
-    for tool in tools:
-        print(f"- {tool['name']}: {tool['description']}")
-    
-    # List available resources
-    print("\nAvailable resources:")
-    resources = client.list_resources()
-    for resource in resources:
-        print(f"- {resource['name']}: {resource['description']}")
+    print("Welcome to the Weather Assistant!")
+    print("This demo shows how prompts in MCP are user-controlled.")
     
     # List available prompts
-    print("\nAvailable prompts:")
     prompts = client.list_prompts()
-    for prompt in prompts:
-        print(f"- {prompt['name']}: {prompt['description']}")
+    print("\nAvailable prompt commands:")
+    for i, prompt in enumerate(prompts, 1):
+        print(f"{i}. /{prompt['name']} - {prompt['description']}")
     
-    # Get all cities resource
-    print("\nAll cities with weather data:")
+    # Get list of cities
     cities = client.get_resource("all_cities")
-    print(cities)
+    print("\nAvailable cities:", ", ".join(city.title() for city in cities))
     
-    # Call the weather tool for a few cities
-    print("\nWeather information:")
-    for city in ["San Francisco", "Tokyo", "Unknown City"]:
-        print(f"\nWeather for {city}:")
-        weather = client.call_tool("get_weather", {"city": city})
-        if weather:
-            print(f"Temperature: {weather['temp']}°F")
-            print(f"Condition: {weather['condition']}")
+    while True:
+        user_input = input("\nEnter a command (e.g., '/weather_report San Francisco') or 'quit' to exit: ")
+        
+        if user_input.lower() == 'quit':
+            break
+        
+        # Parse command
+        if user_input.startswith('/'):
+            parts = user_input.split(' ', 1)
+            command = parts[0][1:]  # Remove the leading '/'
+            
+            if len(parts) > 1:
+                args = parts[1]
+            else:
+                args = ""
+            
+            # Handle different prompt commands
+            if command == "weather_report":
+                result = client.invoke_prompt("weather_report", {"city": args.lower()})
+                if result:
+                    print(result)
+            
+            elif command == "packing_list":
+                # Parse arguments: city and days
+                arg_parts = args.rsplit(' ', 1)
+                if len(arg_parts) > 1 and arg_parts[1].isdigit():
+                    city = arg_parts[0].lower()
+                    days = int(arg_parts[1])
+                else:
+                    city = args.lower()
+                    days = 1
+                
+                result = client.invoke_prompt("packing_list", {"city": city, "days": days})
+                if result:
+                    print(result)
+            
+            else:
+                print(f"Unknown command: {command}")
+        else:
+            print("Commands start with '/' (e.g., '/weather_report San Francisco')")
     
-    # Invoke prompts
-    print("\nWeather Report for Tokyo:")
-    report = client.invoke_prompt("weather_report", {"city": "tokyo"})
-    if report:
-        print(report)
-    
-    print("\nPacking List for London (3 days):")
-    packing_list = client.invoke_prompt("packing_list", {"city": "london", "days": 3})
-    if packing_list:
-        print(packing_list)
-    
-    # Clean up
     client.close()
 
 if __name__ == "__main__":
