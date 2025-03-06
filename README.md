@@ -12,6 +12,7 @@ This tutorial demonstrates the core concepts of MCP:
 ## Files
 
 - `weather_server.py`: A simple MCP server that provides weather data
+- `mcp_utils.py`: Shared utilities, including the MCPClient class
 - `mcp_client.py`: A client that connects to the server and demonstrates basic interactions
 - `weather_agent.py`: An agent that uses the weather server to suggest activities
 - `weather_prompt.py`: A demo focusing on user-controlled prompts

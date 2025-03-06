@@ -1,6 +1,5 @@
-import json
-import subprocess
-from anthropic import Anthropic
+from mcp_client import MCPClient
+
 
 class WeatherAgent:
     def __init__(self):
@@ -47,66 +46,6 @@ class WeatherAgent:
     def close(self):
         self.client.close()
 
-# Reusing our MCPClient class from before
-class MCPClient:
-    def __init__(self, server_command):
-        # Start the server process
-        self.process = subprocess.Popen(
-            server_command,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-    
-    def send_message(self, message):
-        # Send a message to the server
-        message_json = json.dumps(message) + "\n"
-        self.process.stdin.write(message_json)
-        self.process.stdin.flush()
-        
-        # Read the response
-        response_json = self.process.stdout.readline()
-        return json.loads(response_json)
-    
-    def list_tools(self):
-        response = self.send_message({"type": "list_tools"})
-        return response.get("tools", [])
-    
-    def call_tool(self, name, parameters=None):
-        if parameters is None:
-            parameters = {}
-        
-        response = self.send_message({
-            "type": "call_tool",
-            "name": name,
-            "parameters": parameters
-        })
-        
-        if "error" in response:
-            print(f"Error: {response['error']}")
-            return None
-        
-        return response.get("result")
-
-    def get_resource(self, name, parameters=None):
-        if parameters is None:
-            parameters = {}
-    
-        response = self.send_message({
-            "type": "get_resource",
-            "name": name,
-            "parameters": parameters
-        })
-    
-        if "error" in response:
-            print(f"Error: {response['error']}")
-            return None
-    
-        return response.get("data")
-    
-    def close(self):
-        self.process.terminate()
 
 def main():
     agent = WeatherAgent()
